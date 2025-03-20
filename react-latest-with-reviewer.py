@@ -22,11 +22,50 @@ os.environ["OPENAI_MODEL_NAME"] = "llama3-70b-8192"
 os.environ["OPENAI_API_KEY"] = os.getenv("GROQ_API_KEY")
 
 
+class CodeReviewerAgent:
+    def __init__(self):
+        self.agent = Agent(
+            role="Code Reviewer",
+            goal="Review the generated code for quality and best practices",
+            backstory=(
+                "You are a senior developer specializing in code reviews. "
+                "You ensure that all code is clean, efficient, and follows best practices."
+            ),
+            verbose=True,
+            allow_delegation=False
+        )
+
+    def review_code(self, code):
+        """Review the generated code for quality and best practices."""
+        review_task = Task(
+            description=f"""
+            Review the following code for quality and best practices:
+            {code}
+
+            Requirements:
+            1. Check for code readability and maintainability.
+            2. Ensure best practices are followed.
+            3. Identify potential bugs or vulnerabilities.
+            4. Provide a detailed review report.
+            """,
+            agent=self.agent,
+            expected_output="Detailed review report with suggestions for improvement"
+        )
+
+        crew = Crew(
+            agents=[self.agent],
+            tasks=[review_task],
+            verbose=True,
+            process=Process.sequential
+        )
+
+        return crew.kickoff()
+
 
 class ReactFileAgent:
     def __init__(self, file_path):
         self.file_path = file_path
-        self.agent = Agent(
+        self.developer_agent = Agent(
             role=f"React Developer for {os.path.basename(file_path)}",
             goal="Implement requested changes to this specific file while maintaining functionality and best practices",
             backstory=(
@@ -36,6 +75,7 @@ class ReactFileAgent:
             verbose=True,
             allow_delegation=False
         )
+        self.reviewer_agent = CodeReviewerAgent()
 
     def improve_file(self, improvements):
         """Improve the React file based on the provided improvements."""
@@ -60,12 +100,12 @@ class ReactFileAgent:
             4. Keep the existing file structure
             5. Return the code in a markdown code block
             """,
-            agent=self.agent,
+            agent=self.developer_agent,
             expected_output="Complete updated React component code"
         )
 
         crew = Crew(
-            agents=[self.agent],
+            agents=[self.developer_agent],
             tasks=[improve_task],
             verbose=True,
             process=Process.sequential
@@ -77,7 +117,11 @@ class ReactFileAgent:
         # Verify we have valid code
         if not improved_code or 'import' not in improved_code:
             raise ValueError("Failed to generate valid React component code")
-            
+        
+        # Review the improved code
+        review_report = self.reviewer_agent.review_code(improved_code)
+        logger.info(f"Code Review Report:\n{review_report}")
+        
         return improved_code
 
     def _extract_code(self, generated_code):

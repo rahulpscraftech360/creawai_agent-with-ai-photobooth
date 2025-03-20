@@ -3,16 +3,5 @@
         "give background for the page, when showing the user data collection form as an image, other times keep it transparent. The image URL is 'https://fuhqxfbyvrklxggecynt.supabase.co/storage/v1/object/public/nielsen/backgrounds/1741599792665-bggg.jpg'",
         "in gender selection, show gender images in a column"
        
-    ],
-    "projects/photobooth/src/theme-slider.jsx": [
-        "change every button background color to bg-sky-900 using TailwindCSS"
-    ],
-    "projects/photobooth/src/SceneSlider.jsx": [
-        "increase number of scenes to 3"
-    ],
-    "projects/photobooth/src/App.jsx": [
-        "give background , The image URL is 'https://fuhqxfbyvrklxggecynt.supabase.co/storage/v1/object/public/photboothSettings/backgrounds/background/1741428726130-bg1'"
-        
-       
     ]
 }

@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from crewai import Agent, Task, Crew, Process
 from dotenv import load_dotenv
+import cohere
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -16,17 +17,61 @@ logger = logging.getLogger(__name__)
 # Load environment variables
 load_dotenv()
 
-# Set up Groq configuration
-os.environ["OPENAI_API_BASE"] = "https://api.groq.com/openai/v1"
-os.environ["OPENAI_MODEL_NAME"] = "llama3-70b-8192"
-os.environ["OPENAI_API_KEY"] = os.getenv("GROQ_API_KEY")
+# Set up Cohere client for direct API calls
+cohere_api_key = os.getenv("COHERE_API_KEY")
+co = cohere.Client(cohere_api_key)
 
+class CodeReviewerAgent:
+    def __init__(self):
+        self.agent = Agent(
+            role="Code Reviewer",
+            goal="Review the generated code for quality and best practices",
+            backstory=(
+                "You are a senior developer specializing in code reviews. "
+                "You ensure that all code is clean, efficient, and follows best practices."
+            ),
+            verbose=True,
+            allow_delegation=False,
+            llm=dict(  # Explicit LLM config for Cohere
+                provider="cohere",
+                config={
+                    "model": "command",
+                    "api_key": os.getenv("COHERE_API_KEY")
+                }
+            )
+        )
+
+    def review_code(self, code):
+        """Review the generated code for quality and best practices."""
+        review_task = Task(
+            description=f"""
+            Review the following code for quality and best practices:
+            {code}
+
+            Requirements:
+            1. Check for code readability and maintainability.
+            2. Ensure best practices are followed.
+            3. Identify potential bugs or vulnerabilities.
+            4. Provide a detailed review report.
+            """,
+            agent=self.agent,
+            expected_output="Detailed review report with suggestions for improvement"
+        )
+
+        crew = Crew(
+            agents=[self.agent],
+            tasks=[review_task],
+            verbose=True,
+            process=Process.sequential
+        )
+
+        return crew.kickoff()
 
 
 class ReactFileAgent:
     def __init__(self, file_path):
         self.file_path = file_path
-        self.agent = Agent(
+        self.developer_agent = Agent(
             role=f"React Developer for {os.path.basename(file_path)}",
             goal="Implement requested changes to this specific file while maintaining functionality and best practices",
             backstory=(
@@ -34,8 +79,16 @@ class ReactFileAgent:
                 "changes to React components while following best practices."
             ),
             verbose=True,
-            allow_delegation=False
+            allow_delegation=False,
+            llm=dict(  # Explicit LLM config for Cohere
+                provider="cohere",
+                config={
+                    "model": "command",
+                    "api_key": os.getenv("COHERE_API_KEY")
+                }
+            )
         )
+        self.reviewer_agent = CodeReviewerAgent()
 
     def improve_file(self, improvements):
         """Improve the React file based on the provided improvements."""
@@ -45,39 +98,40 @@ class ReactFileAgent:
         # Combine all improvements into a single description
         improvements_description = "\n".join(f"- {improvement}" for improvement in improvements)
 
-        improve_task = Task(
-            description=f"""
-            Improve this React file by implementing these specific changes:
-            {improvements_description}
+        # Use Cohere API to generate improved code
+        prompt = f"""
+        Improve this React file by implementing these specific changes:
+        {improvements_description}
 
-            Original code:
-            {original_code}
+        Original code:
+        {original_code}
 
-            Requirements:
-            1. Provide the complete updated code
-            2. Include all imports
-            3. Maintain existing functionality
-            4. Keep the existing file structure
-            5. Return the code in a markdown code block
-            """,
-            agent=self.agent,
-            expected_output="Complete updated React component code"
+        Requirements:
+        1. Provide the complete updated code
+        2. Include all imports
+        3. Maintain existing functionality
+        4. Keep the existing file structure
+        5. Return the code in a markdown code block
+        """
+
+        response = co.generate(
+            prompt=prompt,
+            model="command",
+            max_tokens=1000,
+            temperature=0.7
         )
 
-        crew = Crew(
-            agents=[self.agent],
-            tasks=[improve_task],
-            verbose=True,
-            process=Process.sequential
-        )
-
-        result = crew.kickoff()
-        improved_code = self._extract_code(result)
+        improved_code = response.generations[0].text
+        improved_code = self._extract_code(improved_code)
         
         # Verify we have valid code
         if not improved_code or 'import' not in improved_code:
             raise ValueError("Failed to generate valid React component code")
-            
+        
+        # Review the improved code
+        review_report = self.reviewer_agent.review_code(improved_code)
+        logger.info(f"Code Review Report:\n{review_report}")
+        
         return improved_code
 
     def _extract_code(self, generated_code):
