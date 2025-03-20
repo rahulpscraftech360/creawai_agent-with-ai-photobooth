@@ -9,7 +9,7 @@ load_dotenv()
 
 # Set up Groq configuration
 os.environ["OPENAI_API_BASE"] = "https://api.groq.com/openai/v1"
-os.environ["OPENAI_MODEL_NAME"] = "llama3-70b-8192"
+os.environ["OPENAI_MODEL_NAME"] = "llama-3.3-70b-versatile"
 os.environ["OPENAI_API_KEY"] = os.getenv("GROQ_API_KEY")
 
 class ReactImproverCrew:
@@ -96,9 +96,9 @@ if __name__ == "__main__":
         print(f"✅ Component improved successfully!")
         print(f"📁 Updated file: {args.input_file}")
         print("="*80 + "\n")
-        print("Improvements Made:")
+        print("✅ Improvements Made successfully! ")
         print("-"*80)
-        print(generated_code)
+        # print(generated_code)
         print("-"*80)
 
     except Exception as e:

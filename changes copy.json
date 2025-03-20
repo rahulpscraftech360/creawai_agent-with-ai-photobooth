@@ -1,0 +1,10 @@
+
+{
+
+    "projects/photobooth/src/Camera.jsx": "give background  for the page,when showing the user data collection form as a inmage , other time keep it transparent, the image url is 'https://fuhqxfbyvrklxggecynt.supabase.co/storage/v1/object/public/nielsen/backgrounds/1741599792665-bggg.jpg' ",
+    "projects/photobooth/src/Camera.jsx": "in gender selection , show gender images in a column ",
+       "projects/photobooth/src/Camera.jsx":"increse number of scenes to 5",
+    "projects/photobooth/src/theme-slider.jsx":"change every button background colour to bg-sky-900 use tailwindcss ",
+      "projects/photobooth/src/SceneSlider.jsx":"increse number of scenes to 5"
+
+}
