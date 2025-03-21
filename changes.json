@@ -1,7 +1,5 @@
 {
-    "projects/photobooth/src/Camera.jsx": [
-        "give background for the page, when showing the user data collection form as an image, other times keep it transparent. The image URL is 'https://fuhqxfbyvrklxggecynt.supabase.co/storage/v1/object/public/nielsen/backgrounds/1741599792665-bggg.jpg'",
-        "in gender selection, show gender images in a column"
-       
+    "camera.jsx": [
+        "give background for the page, The image URL is 'https://fuhqxfbyvrklxggecynt.supabase.co/storage/v1/object/public/nielsen/backgrounds/1741599792665-bggg.jpg'"
     ]
 }
