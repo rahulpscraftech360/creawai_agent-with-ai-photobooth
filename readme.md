@@ -3,3 +3,17 @@ So, possible agents could include a Senior Architect to plan the project structu
 
 run buy 
 // python react_crew_groq.py ./projects/photobooth --changes changes.json
+
+
+
+
+To run the script with code review enabled:
+
+python react-lmstudio.py input --changes changes.json --review
+
+
+
+
+To run the script without code review:
+
+python react-lmstudio.py input --changes changes.json

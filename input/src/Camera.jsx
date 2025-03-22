@@ -1,3 +1,4 @@
+import React from 'react';
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
@@ -12,7 +13,7 @@ const Container = styled.section`
   color: white;
   padding: 1rem;
   box-sizing: border-box;
-  background-image: url('https://fuhqxfbyvrklxggecynt.supabase.co/storage/v1/object/public/nielsen/backgrounds/1742189499658-form.jpg');
+  background-image: url('https://fuhqxfbyvrklxggecynt.supabase.co/storage/v1/object/public/nielsen/backgrounds/1741599792665-bggg.jpg');
   background-size: cover;
   background-position: center;
 `;
@@ -51,7 +52,7 @@ const VideoElement = styled.video`
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   object-fit: cover;
-  aspect-ratio: 4/3;
+  aspect-ratio: 16/9;
   display: block;
   margin: 0 auto;
 `;
@@ -79,7 +80,7 @@ const CaptureButton = styled.button`
   transform: translateX(-50%);
   border-radius: 50%;
   background-color: red;
-  color: black;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -125,7 +126,7 @@ const ActionButton = styled.button`
   padding: 16px 32px;
   border: 2px solid black;
   background-color: red;
-  color: black;
+  color: white;
   border-radius: 8px;
   font-size: 24px;
   cursor: pointer;
@@ -139,11 +140,11 @@ const ActionButton = styled.button`
 `;
 
 const RetakeButton = styled(ActionButton)`
-  /* No additional styles needed */
+/* No additional styles needed */
 `;
 
 const SubmitButton = styled(ActionButton)`
-  /* No additional styles needed */
+/* No additional styles needed */
 `;
 
 const ErrorMessage = styled.div`
@@ -165,7 +166,7 @@ function Camera() {
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Start camera when component mounts or when returning from preview
   useEffect(() => {
     if (isCameraOn) {
@@ -177,12 +178,12 @@ function Camera() {
       stopCamera();
     };
   }, [isCameraOn]);
-  
+
   // Function to start the camera
   const startCamera = async () => {
     setIsLoading(true);
     setError("");
-    
+
     try {
       const constraints = { 
         video: {
@@ -193,7 +194,7 @@ function Camera() {
       };
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.onloadedmetadata = () => {
@@ -206,7 +207,7 @@ function Camera() {
       setIsLoading(false);
     }
   };
-  
+
   // Function to stop the camera
   const stopCamera = () => {
     if (videoRef.current && videoRef.current.srcObject) {
@@ -215,20 +216,20 @@ function Camera() {
       videoRef.current.srcObject = null;
     }
   };
-  
+
   // Function to capture image
   const captureImage = () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
-    
+
     if (!canvas || !video) return;
-    
+
     const context = canvas.getContext("2d");
-    
+
     // Set canvas dimensions - limit to max 650px while maintaining aspect ratio
     const videoWidth = video.videoWidth;
     const videoHeight = video.videoHeight;
-    
+
     // Calculate new dimensions while preserving aspect ratio and not exceeding 650px
     let targetWidth = videoWidth;
     let targetHeight = videoHeight;
@@ -245,10 +246,10 @@ function Camera() {
     
     canvas.width = targetWidth;
     canvas.height = targetHeight;
-    
+
     // Draw video frame to canvas with the calculated dimensions
     context.drawImage(video, 0, 0, targetWidth, targetHeight);
-    
+
     // Convert canvas to blob
     canvas.toBlob((blob) => {
       if (!blob) {
@@ -264,8 +265,9 @@ function Camera() {
       // Store blob for later use
       canvas.blob = blob;
     }, "image/jpeg", 0.9);
+
   };
-  
+
   // Function to retake photo
   const retakePhoto = () => {
     if (capturedImage) {
@@ -274,7 +276,7 @@ function Camera() {
     setCapturedImage(null);
     setIsCameraOn(true); // Turn camera back on
   };
-  
+
   // Function to submit photo and navigate to swap page
   const submitPhoto = () => {
     const blob = canvasRef.current.blob;
@@ -287,10 +289,11 @@ function Camera() {
       state: { sourceImageBlob: blob }
     });
   };
-  
+
   return (
     <Container>
       <Title>{capturedImage ? "Preview" : "Camera"}</Title>
+
       
       {error && <ErrorMessage>{error}</ErrorMessage>}
       
@@ -334,8 +337,8 @@ function Camera() {
           )
         )}
       </CameraWrapper>
-      
 
+      
       <canvas ref={canvasRef} style={{ display: 'none' }} />
     </Container>
   );

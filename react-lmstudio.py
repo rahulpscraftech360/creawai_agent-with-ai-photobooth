@@ -13,6 +13,7 @@ from rich.console import Console
 console = Console()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+isreviewer = False
 
 class CodeReviewerAgent:
     def __init__(self):
@@ -27,7 +28,7 @@ class CodeReviewerAgent:
             verbose=True,
             allow_delegation=False,
             llm_config={
-                 "model": "hermes-3-llama-3.2-3b",
+                "model": "hermes-3-llama-3.2-3b",
                 "temperature": 0.7,
                 "api_base": "http://172.28.128.1:1234/v1",
                 "api_key": "no-key-needed",
@@ -77,14 +78,13 @@ class ReactFileAgent:
             verbose=True,
             allow_delegation=False,
             llm_config={
-                  "model": "hermes-3-llama-3.2-3b",
-                    "temperature": 0.7,
-                    "api_base": "http://172.28.128.1:1234/v1",
+                "model": "hermes-3-llama-3.2-3b",
+                "temperature": 0.7,
+                "api_base": "http://172.28.128.1:1234/v1",
                 "api_key": "no-key-needed",
                 "context_window": 131072,
                 "max_tokens": 65536
             }
-          
         )
         self.reviewer_agent = CodeReviewerAgent()
 
@@ -121,10 +121,11 @@ class ReactFileAgent:
         result = crew.kickoff()
         improved_code = self._extract_code(result)
         
-        # Get code review
-        review = self.reviewer_agent.review_code(improved_code)
-        console.print("\n[bold cyan]Code Review:[/bold cyan]")
-        console.print(review)
+        # Get code review if isreviewer is True
+        if isreviewer:
+            review = self.reviewer_agent.review_code(improved_code)
+            console.print("\n[bold cyan]Code Review:[/bold cyan]")
+            console.print(review)
         
         return improved_code
 
@@ -203,7 +204,11 @@ def main():
     parser.add_argument("project_dir", help="Path to React project directory")
     parser.add_argument("--changes", help="Path to JSON file containing changes or JSON string")
     parser.add_argument("--dry-run", action="store_true", help="Preview changes without applying them")
+    parser.add_argument("--review", action="store_true", help="Enable code review")
     args = parser.parse_args()
+
+    global isreviewer
+    isreviewer = args.review
 
     try:
         # Try to load as file first, then as JSON string
